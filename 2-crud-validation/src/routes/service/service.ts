@@ -1,17 +1,7 @@
-import Ajv from "ajv";
 import uuid4 from "uuid4";
 
-import { userSchema, autosuggestQuerySchema } from "../../utils/schemas";
 import { dbUsers, User } from "../../dbMock";
-
-const ajv = new Ajv();
-const validateUser = ajv.compile(userSchema);
-const validateQuery = ajv.compile(autosuggestQuerySchema);
-
-type QueryType = {
-  loginSubstring: string;
-  limit: string;
-};
+import { validateUser, validateQuery } from "../../utils/ajvApi";
 
 let usersDb: User[] = [...dbUsers];
 
@@ -23,11 +13,7 @@ const getUsersByLoginSubstring = (loginSubstring: string) =>
     user.login.toLowerCase().includes(loginSubstring.toLowerCase())
   );
 
-export const handleAutosuggest = req => {
-  const isQueryValid = validateQuery(req.query);
-  if (!isQueryValid) throw new Error(validateQuery.errors[0].message);
-
-  const { loginSubstring, limit } = req.query as QueryType;
+export const handleAutosuggest = (loginSubstring: string, limit: string) => {
   const answerList: User[] = getUsersByLoginSubstring(loginSubstring).slice(
     0,
     parseInt(limit, 10)
@@ -35,8 +21,7 @@ export const handleAutosuggest = req => {
   return { answerList, usersDb };
 };
 
-export const handleGetById = req => {
-  const { id } = req.params;
+export const handleGetById = (id: string) => {
   const user: User = getUserById(id);
   if (!user) throw new Error("No user found");
   return { user, usersDb };
@@ -44,17 +29,14 @@ export const handleGetById = req => {
 
 export const handleGetAll = () => usersDb;
 
-export const handleCreateUser = req => {
-  const isUserValid = validateUser(req.body);
-  if (!isUserValid) throw new Error(validateUser.errors[0].message);
-  const user: User = { ...req.body, id: uuid4(), isDeleted: false };
+export const handleCreateUser = (userDTO: Partial<User>) => {
+  const user: User = { ...userDTO, id: uuid4(), isDeleted: false } as User;
   usersDb = [...usersDb, user];
   return { user, usersDb };
 };
 
-export const handlePatchUser = req => {
-  const updatedUserParams: Partial<User> = req.body;
-  const { id } = req.params;
+export const handlePatchUser = (updatedUserParams: Partial<User>) => {
+  const { id } = updatedUserParams;
   usersDb = usersDb.map(user => {
     if (user.id === id) {
       return { ...user, ...updatedUserParams };
@@ -66,17 +48,15 @@ export const handlePatchUser = req => {
   return { user, usersDb };
 };
 
-export const handleUpdateUser = req => {
-  const updatedUser = req.body;
-  const { id } = req.params;
-  usersDb = [...usersDb.filter(user => user.id !== id), updatedUser];
+export const handleUpdateUser = (updatedUserDTO: User) => {
+  const { id } = updatedUserDTO;
+  usersDb = [...usersDb.filter(user => user.id !== id), updatedUserDTO];
   const user: User = getUserById(id);
   if (!user) throw new Error("No user found");
   return { user, usersDb };
 };
 
-export const handleDeleteUser = req => {
-  const { id } = req.params;
+export const handleDeleteUser = (id: string) => {
   usersDb = usersDb.map(user => {
     if (user.id === id) {
       return { ...user, isDeleted: true };

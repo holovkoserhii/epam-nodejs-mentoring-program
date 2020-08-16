@@ -1,9 +1,12 @@
 import express from "express";
 
+import { User } from "../dbMock";
 import {
   logRequestInConsole,
   createUserError,
-  createUserAttributesError
+  createUserAttributesError,
+  validateQueryMiddleware,
+  validateUserMiddleware
 } from "../utils/middlewares";
 import { logger } from "../logger";
 import {
@@ -29,24 +32,36 @@ But for simplicity and a purpose of this homework I made it simple: /:id
 4. After each request I send the current state of the whole db.
 */
 
-router.get("/autosuggest", logRequestInConsole, (req, res, next) => {
-  try {
-    const { answerList, usersDb } = handleAutosuggest(req);
-    logger.info("autosuggest used");
-    res.status(200).json({
-      message: "Found successfully",
-      users: answerList,
-      dbStateAfterOperation: usersDb
-    });
-  } catch (error) {
-    error.status = 400;
-    next(error);
+type QueryType = {
+  loginSubstring: string;
+  limit: string;
+};
+
+router.get(
+  "/autosuggest",
+  logRequestInConsole,
+  validateQueryMiddleware,
+  (req, res, next) => {
+    try {
+      const { loginSubstring, limit } = req.query as QueryType;
+      const { answerList, usersDb } = handleAutosuggest(loginSubstring, limit);
+      logger.info("autosuggest used");
+      res.status(200).json({
+        message: "Found successfully",
+        users: answerList,
+        dbStateAfterOperation: usersDb
+      });
+    } catch (error) {
+      error.status = 400;
+      next(error);
+    }
   }
-});
+);
 
 router.get("/:id", logRequestInConsole, (req, res, next) => {
   try {
-    const { user, usersDb } = handleGetById(req);
+    const { id } = req.params;
+    const { user, usersDb } = handleGetById(id);
     logger.info("get user used");
     res.status(200).json({
       message: "Fetched successfully",
@@ -73,20 +88,27 @@ router.get("/", logRequestInConsole, (req, res, next) => {
   }
 });
 
-router.post("/", logRequestInConsole, createUserError, (req, res, next) => {
-  try {
-    const { user, usersDb } = handleCreateUser(req);
-    logger.info("new user created");
-    res.status(201).json({
-      message: "Created successfully",
-      user,
-      dbStateAfterOperation: usersDb
-    });
-  } catch (error) {
-    error.status = 400;
-    next(error);
+router.post(
+  "/",
+  logRequestInConsole,
+  createUserError,
+  validateUserMiddleware,
+  (req, res, next) => {
+    try {
+      const { userDTO }: { userDTO: Partial<User> } = req.body;
+      const { user, usersDb } = handleCreateUser(userDTO);
+      logger.info("new user created");
+      res.status(201).json({
+        message: "Created successfully",
+        user,
+        dbStateAfterOperation: usersDb
+      });
+    } catch (error) {
+      error.status = 400;
+      next(error);
+    }
   }
-});
+);
 
 router.patch(
   "/:id",
@@ -94,7 +116,8 @@ router.patch(
   createUserAttributesError,
   (req, res, next) => {
     try {
-      const { user, usersDb } = handlePatchUser(req);
+      const updatedUserParams: Partial<User> = req.body;
+      const { user, usersDb } = handlePatchUser(updatedUserParams);
       logger.info("user updated");
       res.status(200).json({
         message: "Patched successfully",
@@ -114,7 +137,8 @@ router.put(
   createUserAttributesError,
   (req, res, next) => {
     try {
-      const { user, usersDb } = handleUpdateUser(req);
+      const updatedUserDTO: User = req.body;
+      const { user, usersDb } = handleUpdateUser(updatedUserDTO);
       logger.info("user updated");
       res.status(200).json({
         message: "Put successfully",
@@ -130,7 +154,8 @@ router.put(
 
 router.delete("/:id", logRequestInConsole, (req, res, next) => {
   try {
-    const { user, usersDb } = handleDeleteUser(req);
+    const { id } = req.params;
+    const { user, usersDb } = handleDeleteUser(id);
     logger.info("user softly deleted");
     res.status(200).json({
       message: "Deleted successfully",
