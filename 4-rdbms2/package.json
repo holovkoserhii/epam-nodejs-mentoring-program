@@ -1,0 +1,32 @@
+{
+  "name": "4-rdbms2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "watch:serve": "ts-node src/index.ts",
+    "start": "nodemon -e ts -w ./src -x npm run watch:serve"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/sequelize": "^4.28.9",
+    "ajv": "^6.12.3",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "http-errors": "^1.8.0",
+    "pg": "^8.3.2",
+    "pg-hstore": "^2.3.3",
+    "sequelize": "^6.3.4",
+    "uuid4": "^2.0.2",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.7",
+    "babel": "^6.23.0",
+    "eslint": "^7.6.0",
+    "nodemon": "^2.0.4",
+    "typescript": "^3.9.7",
+    "ts-node": "^8.10.2"
+  }
+}
