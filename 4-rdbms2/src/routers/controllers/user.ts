@@ -8,7 +8,7 @@ import {
   validateQueryMiddleware,
   validateUserMiddleware,
   validateAllUserAttributesPresent
-} from "../../services/middlewares";
+} from "../../middlewares";
 import { logger } from "../../logger";
 import {
   handleAutosuggest,

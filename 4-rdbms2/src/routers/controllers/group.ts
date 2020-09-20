@@ -8,7 +8,7 @@ import {
   validateGroupMiddleware,
   validateAllGroupAttributesPresent,
   validateUserGroupMiddleware
-} from "../../services/middlewares";
+} from "../../middlewares";
 import { logger } from "../../logger";
 import {
   handleGetGroupById,

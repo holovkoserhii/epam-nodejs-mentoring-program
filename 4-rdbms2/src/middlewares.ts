@@ -5,7 +5,7 @@ import {
   validateQuery,
   validateGroup,
   validateUserGroup
-} from "./ajvApi";
+} from "./services/ajvApi";
 
 export const logRequestInConsole = async (req, res, next) => {
   const message = req.method;

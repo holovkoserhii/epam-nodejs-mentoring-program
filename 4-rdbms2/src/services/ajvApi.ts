@@ -1,10 +1,8 @@
 import Ajv from "ajv";
-import {
-  userSchema,
-  autosuggestQuerySchema,
-  groupSchema,
-  userGroupSchema
-} from "./schemas";
+import { autosuggestQuerySchema } from "../schemas/autosuggestQuerySchema";
+import { groupSchema } from "../schemas/groupSchema";
+import { userGroupSchema } from "../schemas/userGroupSchema";
+import { userSchema } from "../schemas/userSchema";
 
 const ajv = new Ajv();
 export const validateUser = ajv.compile(userSchema);
